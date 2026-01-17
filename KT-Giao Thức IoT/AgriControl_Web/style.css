@@ -1,0 +1,432 @@
+
+    :root {
+      --sidebar-width: 260px;
+      --primary-color: #5a8dee;
+      --secondary-color: #697a8d;
+      --bg-color: #f1f5f9;
+    }
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    
+    #wrapper {
+      display: flex;
+      width: 100%;
+      align-items: stretch;
+      min-height: 100vh;
+    }
+    
+    #sidebar-wrapper {
+      min-width: var(--sidebar-width);
+      max-width: var(--sidebar-width);
+      background-color: #2b3442;
+      color: #fff;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .sidebar-heading {
+      padding: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #fff;
+      text-align: center;
+      background: #2b3442;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+    
+    .list-group-item {
+      background-color: transparent;
+      color: #a3aab5;
+      border: none;
+      padding: 1rem 1.5rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    .list-group-item:hover, .list-group-item.active {
+      background-color: rgba(255,255,255,0.05);
+      color: #fff;
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .list-group-item i {
+      width: 25px;
+    }
+    
+    #page-content-wrapper {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .top-navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 0.8rem 1.5rem;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 6px 0 rgba(67, 89, 113, 0.12);
+      margin-bottom: 1.5rem;
+      background: #fff;
+    }
+    
+    .card-header {
+      background-color: #2b3442;
+      border-bottom: 1px solid #d9dee3;
+      padding: 1.2rem 1.5rem;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Page Titles */
+    .ag-page > .d-flex > h4 {
+      font-weight: 600;
+      color: #566a7f;
+      font-size: 1.25rem;
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+    }
+    
+    .data-item .card-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    
+    .data-item .label {
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .data-item .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .notification-icon {
+      position: relative;
+      cursor: pointer;
+      margin-left: 15px;
+      color: #697a8d;
+    }
+    
+    #notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: #ff3e1d;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 5px;
+      font-size: 0.65rem;
+      display: none;
+    }
+    
+    #notification-panel {
+      position: absolute;
+      right: 0;
+      top: 30px;
+      background: white;
+      border: 1px solid #ddd;
+      padding: 0;
+      z-index: 1000;
+      width: 320px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      display: none;
+      max-height: 450px;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      font-size: 0.95rem;
+    }
+    
+    #notification-list {
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    
+    .notification-item {
+      padding: 10px 15px;
+      border-bottom: 1px solid #d9dee3;
+      font-size: 0.9rem;
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-item.active-alert {
+      background-color: #ffe0db;
+      color: #ff3e1d;
+    }
+    
+    .notification-item.resolved {
+      background-color: #e8fadf;
+      color: #71dd37;
+    }
+    
+    .slider-value {
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .firebase-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .firebase-status.connected {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .firebase-status.disconnected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .firebase-status .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    .firebase-status.connected .status-dot {
+      background-color: #28a745;
+    }
+    
+    .firebase-status.disconnected .status-dot {
+      background-color: #dc3545;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  
+#notification-panel{z-index:9999;}
+
+
+
+/* ================= SNEAT / MATERIO UI OVERRIDE ================= */
+:root{
+  --primary-color:#696cff;
+  --sidebar-bg:#2b3442;
+  --sidebar-text:#a3aab5;
+  --bg-color:#f5f6fa;
+}
+
+body{
+  background:var(--bg-color);
+  font-family: Inter, Segoe UI, sans-serif;
+}
+
+/* Sidebar */
+#sidebar-wrapper{
+  background:var(--sidebar-bg);
+  box-shadow:0 0 20px rgba(0,0,0,.05);
+}
+
+.sidebar-heading{
+  background:#2b3442;
+  color:#fff;
+  font-weight:700;
+  text-align:center;
+  padding:1.5rem;
+  font-size:1.5rem;
+  letter-spacing:1px;
+  margin-bottom:1rem;
+}
+
+.list-group-item{
+  color:var(--sidebar-text);
+  border-radius:8px;
+  margin:4px 10px;
+}
+
+.list-group-item.active,
+.list-group-item:hover{
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  border-left:4px solid var(--primary-color);
+}
+
+/* Top navbar */
+.top-navbar{
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 0.8rem 1.5rem;
+}
+
+/* Cards */
+.card{
+  border-radius:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,.06);
+}
+
+.card-header{
+  font-weight:600;
+}
+
+/* KPI */
+.value{
+  font-size:1.9rem;
+}
+
+/* Notification */
+#notification-panel{
+  border-radius:12px;
+}
+
+
+
+/* ================= UI FIX: APP ICON + COLLAPSE (ICON-ONLY) ================= */
+
+/* Sidebar header: icon + name, also acts as toggle */
+#sidebar-wrapper .sidebar-heading{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  justify-content:flex-start;
+  cursor:pointer;
+  user-select:none;
+}
+#sidebar-wrapper .app-icon{
+  width:26px;
+  height:26px;
+  border-radius:6px;
+}
+
+/* Constrain active background strictly inside sidebar */
+#sidebar-wrapper{ overflow:hidden; }
+#sidebar-wrapper .list-group-item{
+  margin:6px 12px;
+  border-radius:12px;
+  width:auto;
+}
+#sidebar-wrapper .list-group-item.active,
+#sidebar-wrapper .list-group-item:hover{
+  background: rgba(105,108,255,.12);
+}
+
+/* Collapse width */
+#sidebar-wrapper.collapsed{
+  width:72px !important;
+  min-width:72px !important;
+}
+
+/* Hide app name when collapsed, center icon */
+#sidebar-wrapper.collapsed .app-name{
+  display:none !important;
+}
+#sidebar-wrapper.collapsed .sidebar-heading{
+  justify-content:center;
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+
+/* Hide menu text when collapsed */
+#sidebar-wrapper.collapsed .menu-text{
+  display:none !important;
+}
+
+/* Center icons when collapsed */
+#sidebar-wrapper.collapsed .list-group-item{
+  display:flex;
+  justify-content:center;
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+
+/* Remove Bootstrap spacing class effect when collapsed */
+#sidebar-wrapper.collapsed .list-group-item i.me-2{
+  margin-right:0 !important;
+}
+
+/* Make icon column stable */
+#sidebar-wrapper .list-group-item i{
+  width:24px;
+  min-width:24px;
+  text-align:center;
+}
+
+/* Optional: keep content aligned when collapsed (if your layout uses margin-left) */
+body.sidebar-collapsed #page-content-wrapper{
+  margin-left:0;
+}
+
+
+/* ================= AUTH PAGES ================= */
+body.auth-page{
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0b1220 0%, #0f172a 45%, #0b1220 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+}
+.auth-wrap{
+  width: min(440px, 100%);
+}
+.auth-brand{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  justify-content:center;
+  margin-bottom: 14px;
+}
+.auth-brand img{ width: 34px; height: 34px; border-radius: 10px; }
+.auth-brand .name{ color: #e5e7eb; font-weight: 800; letter-spacing: .2px; }
+
+.auth-card{
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.35);
+  padding: 18px 18px 16px;
+}
+.auth-title{ font-weight: 900; font-size: 1.15rem; color:#0f172a; }
+.auth-subtitle{ margin-top: 6px; color:#475569; font-size: .92rem; line-height:1.35; }
+.auth-error{
+  margin-top: 12px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+.auth-muted{ color:#64748b; font-size:.86rem; line-height:1.35; }
+

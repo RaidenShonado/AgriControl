@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriControl Dashboard</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="icon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-32x32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="icon-48x48.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180x180.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+  <!-- Custom Scripts -->
+  <script src="sensorData.js"></script>
+  <script src="weatherAPI.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<div id="wrapper">
+  <div id="sidebar-wrapper">
+    <div class="sidebar-heading" id="sidebar-toggle" title="Thu gọn/Mở rộng sidebar"><span class="app-name">AgriControl</span></div>
+    <div class="list-group list-group-flush" id="sidebar-nav">
+      <a href="#" class="list-group-item list-group-item-action active" data-page="page-climate">
+        <i class="fas fa-temperature-high me-2"></i> <span class="menu-text">Vi Khí Hậu</span>
+      </a>
+      <a href="#" class="list-group-item list-group-item-action" data-page="page-irrigation">
+        <i class="fas fa-water me-2"></i> <span class="menu-text">Tưới Tiêu</span>
+      </a>
+      <a href="#" class="list-group-item list-group-item-action" data-page="page-crops">
+        <i class="fas fa-seedling me-2"></i> <span class="menu-text">Cây Trồng</span>
+      </a>
+      <a href="#" class="list-group-item list-group-item-action" data-page="page-forecast">
+        <i class="fas fa-cloud-sun me-2"></i> <span class="menu-text">Dự Báo</span>
+      </a>
+    </div>
+  </div>
+
+  <div id="page-content-wrapper">
+    <nav class="navbar navbar-expand-lg top-navbar mb-4">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center ms-auto">
+          <div class="firebase-status disconnected" id="firebase-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Đang kết nối...</span>
+          </div>
+          <div id="current-time" class="status-item ms-3 text-muted fw-bold small"></div>
+          <div id="auth-status" class="status-item ms-3 text-muted small"></div>
+          <button id="logout-btn" class="btn btn-sm btn-outline-secondary ms-2" style="display:none;">Đăng xuất</button>
+          <div class="status-item notification-icon ms-3" id="notification-bell">
+            <i class="far fa-bell fa-lg"></i>
+            <span id="notification-badge">0</span>
+            <div id="notification-panel">
+              <div class="notification-header">
+                <strong>Thông báo</strong>
+                <button class="btn btn-sm btn-link text-danger p-0" id="clear-all-notifications" style="display:none;">Xóa tất cả</button>
+              </div>
+              <div id="notification-list"></div>
+            </div>
+          </div>
+          <div class="ms-3">
+            <img src="https://ui-avatars.com/api/?name=Admin&background=5a8dee&color=fff" class="rounded-circle" width="35" height="35" alt="User">
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+      <!-- Vi Khí Hậu Page -->
+      <section class="ag-page" id="page-climate" style="display:block;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="m-0 text-secondary">Dữ Liệu Môi Trường</h4>
+          <div class="d-flex align-items-center">
+            <select class="form-select shadow-sm" id="areaSelector" style="width: auto;">
+              <option value="khuA">Khu A</option>
+              <option value="khuB">Khu B</option>
+              <option value="khuC">Khu C</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="row mb-4">
+          <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card h-100 bg-primary bg-gradient text-white">
+              <div class="card-body">
+                <div class="label text-white-50">Nhiệt độ</div>
+                <div class="value text-white" id="temp-display">--°C</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card h-100 bg-info bg-gradient text-white">
+              <div class="card-body">
+                <div class="label text-white-50">Độ ẩm không khí</div>
+                <div class="value text-white" id="humidity-display">--%</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card h-100 bg-warning bg-gradient text-dark">
+              <div class="card-body">
+                <div class="label text-dark opacity-75">Ánh sáng</div>
+                <div class="value text-dark" id="light-display">-- lux</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card h-100 bg-success bg-gradient text-white">
+              <div class="card-body">
+                <div class="label text-white-50">Độ ẩm đất</div>
+                <div class="value text-white" id="soil-display">--%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <span>BIỂU ĐỒ NHIỆT ĐỘ (24H)</span>
+                <i class="fas fa-temperature-high text-muted"></i>
+              </div>
+              <div class="card-body">
+                <div style="position: relative; height:250px">
+                  <canvas id="tempChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <span>BIỂU ĐỒ ĐỘ ẨM ĐẤT (24H)</span>
+                <i class="fas fa-water text-muted"></i>
+              </div>
+              <div class="card-body">
+                <div style="position: relative; height:250px">
+                  <canvas id="soilChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tưới Tiêu Page -->
+      <section class="ag-page" id="page-irrigation" style="display:none;">
+        <div class="card">
+          <div class="card-header">ĐIỀU KHIỂN TRỰC TIẾP</div>
+          <div class="card-body">
+            <div class="row">
+              <!-- Khu A -->
+              <div class="col-lg-4 mb-4">
+                <div class="card h-100 border">
+                  <div class="card-header border-bottom">Khu A</div>
+                  <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Tưới nước</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuA" data-control="water" type="checkbox"/>
+                      </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Đèn</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuA" data-control="light" type="checkbox"/>
+                      </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Cửa rèm</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuA" data-control="curtain" type="checkbox"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Khu B -->
+              <div class="col-lg-4 mb-4">
+                <div class="card h-100 border">
+                  <div class="card-header border-bottom">Khu B</div>
+                  <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Tưới nước</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuB" data-control="water" type="checkbox"/>
+                      </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Đèn</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuB" data-control="light" type="checkbox"/>
+                      </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Cửa rèm</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuB" data-control="curtain" type="checkbox"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Khu C -->
+              <div class="col-lg-4 mb-4">
+                <div class="card h-100 border">
+                  <div class="card-header border-bottom">Khu C</div>
+                  <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Tưới nước</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuC" data-control="water" type="checkbox"/>
+                      </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Đèn</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuC" data-control="light" type="checkbox"/>
+                      </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Cửa rèm</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" data-area="khuC" data-control="curtain" type="checkbox"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">LÊN LỊCH TÁC VỤ TỰ ĐỘNG</div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-lg-4 mb-4">
+                <h6 class="mb-3">Cài đặt Lịch trình</h6>
+                <div class="mb-3">
+                  <label class="form-label">Áp dụng cho Khu vực</label>
+                  <select class="form-select" id="schedule-area">
+                    <option value="Khu A">Khu A</option>
+                    <option value="Khu B">Khu B</option>
+                    <option value="Khu C">Khu C</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Thời gian Bắt đầu</label>
+                  <input class="form-control" id="schedule-start-time" type="datetime-local"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Thời gian Kết thúc</label>
+                  <input class="form-control" id="schedule-end-time" type="datetime-local"/>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Lặp lại</label>
+                  <select class="form-select" id="schedule-repeat">
+                    <option value="none">Không lặp lại</option>
+                    <option value="daily">Hàng ngày</option>
+                    <option value="weekly">Hàng tuần</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary w-100" onclick="window.addSchedule()">Thêm Lịch Trình</button>
+              </div>
+              
+              <div class="col-lg-8 mb-4">
+                <h6 class="mb-3">Cài đặt Trạng thái Thiết bị</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Tưới nước</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" id="schedule-water" type="checkbox"/>
+                      </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Đèn</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" id="schedule-light" type="checkbox"/>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                      <label class="form-label mb-0">Cửa rèm</label>
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" id="schedule-curtain" type="checkbox"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">DANH SÁCH LỊCH TRÌNH ĐANG HOẠT ĐỘNG</div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush" id="schedule-list" style="max-height: 300px; overflow-y: auto;">
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cây Trồng Page -->
+      <!-- ĐÃ LƯỢC BỎ PHẦN ĐẦU CHO GỌN – NỘI DUNG KHÔNG ĐỔI -->
+<!-- CHỈ THAY ĐỔI TAB CÂY TRỒNG -->
+
+<!-- ================= CÂY TRỒNG PAGE ================= -->
+<section class="ag-page" id="page-crops" style="display:none;">
+  <div class="card">
+    <div class="card-header">CÀI ĐẶT VÀ THEO DÕI CÂY TRỒNG</div>
+    <div class="card-body">
+      <div class="row">
+
+        <!-- KHU A -->
+        <div class="col-lg-4 mb-4">
+          <div class="card bg-light h-100 border">
+            <div class="card-header border-bottom">Khu A</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label">Tên cây trồng</label>
+                <input class="form-control" id="crop-name-A" type="text">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Giai đoạn phát triển</label>
+                <input class="form-control" id="stage-A" type="text">
+              </div>
+
+              <h6 class="mt-3 mb-2">Ngưỡng thuận lợi</h6>
+              <div class="row">
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Nhiệt độ Min (°C)</label>
+                  <input class="form-control form-control-sm" id="temp-min-A" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Nhiệt độ Max (°C)</label>
+                  <input class="form-control form-control-sm" id="temp-max-A" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Độ ẩm đất Min (%)</label>
+                  <input class="form-control form-control-sm" id="soil-min-A" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Độ ẩm đất Max (%)</label>
+                  <input class="form-control form-control-sm" id="soil-max-A" type="number">
+                </div>
+              </div>
+
+              <button class="btn btn-primary w-100 mt-3"
+                onclick="window.saveSettings('A')">Lưu Cài Đặt</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KHU B -->
+        <div class="col-lg-4 mb-4">
+          <div class="card bg-light h-100 border">
+            <div class="card-header border-bottom">Khu B</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label">Tên cây trồng</label>
+                <input class="form-control" id="crop-name-B" type="text">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Giai đoạn phát triển</label>
+                <input class="form-control" id="stage-B" type="text">
+              </div>
+
+              <h6 class="mt-3 mb-2">Ngưỡng thuận lợi</h6>
+              <div class="row">
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Nhiệt độ Min (°C)</label>
+                  <input class="form-control form-control-sm" id="temp-min-B" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Nhiệt độ Max (°C)</label>
+                  <input class="form-control form-control-sm" id="temp-max-B" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Độ ẩm đất Min (%)</label>
+                  <input class="form-control form-control-sm" id="soil-min-B" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Độ ẩm đất Max (%)</label>
+                  <input class="form-control form-control-sm" id="soil-max-B" type="number">
+                </div>
+              </div>
+
+              <button class="btn btn-primary w-100 mt-3"
+                onclick="window.saveSettings('B')">Lưu Cài Đặt</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KHU C -->
+        <div class="col-lg-4 mb-4">
+          <div class="card bg-light h-100 border">
+            <div class="card-header border-bottom">Khu C</div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label">Tên cây trồng</label>
+                <input class="form-control" id="crop-name-C" type="text">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Giai đoạn phát triển</label>
+                <input class="form-control" id="stage-C" type="text">
+              </div>
+
+              <h6 class="mt-3 mb-2">Ngưỡng thuận lợi</h6>
+              <div class="row">
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Nhiệt độ Min (°C)</label>
+                  <input class="form-control form-control-sm" id="temp-min-C" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Nhiệt độ Max (°C)</label>
+                  <input class="form-control form-control-sm" id="temp-max-C" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Độ ẩm đất Min (%)</label>
+                  <input class="form-control form-control-sm" id="soil-min-C" type="number">
+                </div>
+                <div class="col-6 mb-2">
+                  <label class="form-label small">Độ ẩm đất Max (%)</label>
+                  <input class="form-control form-control-sm" id="soil-max-C" type="number">
+                </div>
+              </div>
+
+              <button class="btn btn-primary w-100 mt-3"
+                onclick="window.saveSettings('C')">Lưu Cài Đặt</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+      <!-- Dự Báo Page -->
+      <section class="ag-page" id="page-forecast" style="display:none;">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>DỰ BÁO THỜI TIẾT (7 NGÀY TỚI)</span>
+            <button class="btn btn-sm btn-outline-secondary" id="refresh-weather" title="Cập nhật"><i class="fas fa-sync-alt"></i></button>
+          </div>
+          <div class="card-body">
+            <div id="weather-loading" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status"></div>
+              <p class="mt-2 text-muted">Đang tải dữ liệu thời tiết...</p>
+            </div>
+            <div id="weather-content" style="display:none; height: 400px; position: relative;">
+              <canvas id="weatherChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getDatabase, ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+  import { getAuth, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCfSGNCGJiMyj6vOothpfycJAyJvxhojDI",
+    authDomain: "argicontrol.firebaseapp.com",
+    databaseURL: "https://argicontrol-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "argicontrol",
+    storageBucket: "argicontrol.firebasestorage.app",
+    messagingSenderId: "944915931120",
+    appId: "1:944915931120:web:267e5a0fb996d5bb308735"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  
+  // ===== Firebase Connection Status =====
+  const statusEl = document.getElementById('firebase-status');
+  const statusTextEl = statusEl.querySelector('.status-text');
+  
+  onValue(ref(db, ".info/connected"), (snap) => {
+    if (snap.val() === true) {
+      statusEl.classList.remove('disconnected');
+      statusEl.classList.add('connected');
+      statusTextEl.textContent = 'Đã kết nối Firebase';
+      console.log("[Firebase] CONNECTED");
+    } else {
+      statusEl.classList.remove('connected');
+      statusEl.classList.add('disconnected');
+      statusTextEl.textContent = 'Mất kết nối';
+      console.log("[Firebase] DISCONNECTED");
+    }
+  });
+
+  // ===== Auth =====
+  const auth = getAuth(app);
+
+  // Keep auth only for this session/tab (giảm việc tự vào dashboard do còn phiên cũ)
+  try {
+    await setPersistence(auth, browserSessionPersistence);
+  } catch (e) {
+    console.warn('[Auth] setPersistence warning:', e);
+  }
+
+  const authStatus = document.getElementById('auth-status');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  function setAuthStatusText(text) {
+    if (!authStatus) return;
+    authStatus.textContent = text;
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // Chưa đăng nhập => chuyển về trang login riêng
+      window.location.replace('login.html');
+      return;
+    }
+    const label = user.isAnonymous ? 'Anonymous' : (user.email || 'User');
+    setAuthStatusText(`Đã đăng nhập: ${label}`);
+    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.error('[Auth] signOut error:', e);
+      } finally {
+        window.location.replace('login.html');
+      }
+    });
+  }
+
+  // ===== Clock =====
+
+  function updateClock() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('vi-VN', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+    const dateString = now.toLocaleDateString('vi-VN');
+    document.getElementById('current-time').textContent = `${timeString}, ${dateString}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ===== SPA Navigation =====
+  function showPage(pageId) {
+    document.querySelectorAll('.ag-page').forEach(sec => {
+      sec.style.display = (sec.id === pageId) ? 'block' : 'none';
+    });
+    document.querySelectorAll('#sidebar-nav .list-group-item').forEach(a => {
+      a.classList.toggle('active', a.dataset.page === pageId);
+    });
+  }
+
+  document.getElementById('sidebar-nav').addEventListener('click', (e) => {
+    const link = e.target.closest('a[data-page]');
+    if (!link) return;
+    e.preventDefault();
+    showPage(link.dataset.page);
+  });
+
+  // ===== Climate Data Sync =====
+  let tempChart, soilChart;
+  const currentArea = { value: 'khuA' };
+  
+  function initCharts() {
+    const chartConfig = {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Dữ liệu',
+          data: [],
+          borderColor: '#5a8dee',
+          backgroundColor: 'rgba(90, 141, 238, 0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    };
+
+    tempChart = new Chart(document.getElementById('tempChart'), {
+      ...chartConfig,
+      data: { ...chartConfig.data, datasets: [{ 
+        ...chartConfig.data.datasets[0],
+        label: 'Nhiệt độ (°C)',
+        borderColor: '#dc3545'
+      }]}
+    });
+
+    soilChart = new Chart(document.getElementById('soilChart'), {
+      ...chartConfig,
+      data: { ...chartConfig.data, datasets: [{ 
+        ...chartConfig.data.datasets[0],
+        label: 'Độ ẩm đất (%)',
+        borderColor: '#28a745'
+      }]}
+    });
+  }
+
+  function updateClimateDisplay(area) {
+    const climateRef = ref(db, `agricontrol/climate/${area}`);
+    
+    onValue(climateRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      // Update display values
+      document.getElementById('temp-display').textContent = 
+        data.temperature ? `${data.temperature.toFixed(1)}°C` : '--°C';
+      document.getElementById('humidity-display').textContent = 
+        data.airHumidity ? `${data.airHumidity.toFixed(0)}%` : '--%';
+      document.getElementById('light-display').textContent = 
+        data.lightIntensity ? `${data.lightIntensity.toFixed(0)} lux` : '-- lux';
+      document.getElementById('soil-display').textContent = 
+        data.soilHumidity ? `${data.soilHumidity.toFixed(1)}%` : '--%';
+
+      // Update charts
+      if (data.history) {
+        const labels = Object.keys(data.history).slice(-24);
+        const tempData = labels.map(k => data.history[k].temperature || 0);
+        const soilData = labels.map(k => data.history[k].soilHumidity || 0);
+
+        tempChart.data.labels = labels.map(l => l.split(':')[1] + ':00');
+        tempChart.data.datasets[0].data = tempData;
+        tempChart.update('none');
+
+        soilChart.data.labels = labels.map(l => l.split(':')[1] + ':00');
+        soilChart.data.datasets[0].data = soilData;
+        soilChart.update('none');
+      }
+    });
+  }
+
+  document.getElementById('areaSelector').addEventListener('change', (e) => {
+    currentArea.value = e.target.value;
+    updateClimateDisplay(currentArea.value);
+  });
+
+  // ===== Irrigation Controls Sync =====
+  function syncIrrigationControl(element) {
+    const area = element.dataset.area;
+    const control = element.dataset.control;
+    const controlRef = ref(db, `agricontrol/irrigation/${area}/${control}`);
+
+    // Read from Firebase
+    get(controlRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const value = snapshot.val();
+        if (element.type === 'checkbox') {
+          element.checked = value;
+        } else if (element.type === 'range') {
+          element.value = value;
+          const label = element.previousElementSibling.querySelector('span');
+          if (label) label.textContent = `${value}%`;
+        }
+      }
+    });
+
+    // Listen for changes
+    onValue(controlRef, (snapshot) => {
+      if (!snapshot.exists()) return;
+      const value = snapshot.val();
+      if (element.type === 'checkbox') {
+        element.checked = value;
+      } else if (element.type === 'range') {
+        element.value = value;
+        const label = element.previousElementSibling.querySelector('span');
+        if (label) label.textContent = `${value}%`;
+      }
+    });
+
+    // Write to Firebase
+    element.addEventListener('change', () => {
+      const value = element.type === 'checkbox' ? element.checked : Number(element.value);
+      set(controlRef, value);
+    });
+
+    // Update label for range inputs
+    if (element.type === 'range') {
+      element.addEventListener('input', () => {
+        const label = element.previousElementSibling.querySelector('span');
+        if (label) label.textContent = `${element.value}%`;
+      });
+    }
+  }
+
+  // ===== Schedules Management =====
+  window.addSchedule = function() {
+    const area = document.getElementById('schedule-area').value;
+    const startTime = document.getElementById('schedule-start-time').value;
+    const endTime = document.getElementById('schedule-end-time').value;
+    const repeat = document.getElementById('schedule-repeat').value;
+
+    if (!startTime || !endTime) {
+      alert('Vui lòng chọn đầy đủ thời gian!');
+      return;
+    }
+
+    const waterState = document.getElementById('schedule-water').checked;
+    const lightState = document.getElementById('schedule-light').checked;
+    const curtainState = document.getElementById('schedule-curtain').checked;
+
+    const schedule = {
+      area,
+      startTime,
+      endTime,
+      repeat,
+      waterState,
+      lightState,
+      curtainState,
+      createdAt: Date.now()
+    };
+
+    const schedulesRef = ref(db, 'agricontrol/schedules');
+    get(schedulesRef).then((snapshot) => {
+      const schedules = snapshot.val() || [];
+      schedules.push(schedule);
+      set(schedulesRef, schedules);
+      alert('Đã thêm lịch trình!');
+    });
+  };
+
+  function loadSchedules() {
+    const schedulesRef = ref(db, 'agricontrol/schedules');
+    onValue(schedulesRef, (snapshot) => {
+      const schedules = snapshot.val() || [];
+      const listEl = document.getElementById('schedule-list');
+      listEl.innerHTML = '';
+
+      schedules.forEach((schedule, index) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+          <div>
+            <strong>${schedule.area}</strong> • ${schedule.startTime} - ${schedule.endTime}
+            <br><small class="text-muted">${schedule.repeat} • 
+            Nước: ${schedule.waterState ? 'BẬT' : 'TẮT'} • 
+            Đèn: ${schedule.lightState ? 'BẬT' : 'TẮT'} • 
+            Rèm: ${schedule.curtainState ? 'BẬT' : 'TẮT'}</small></small>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="window.deleteSchedule(${index})">Xóa</button>
+        `;
+        listEl.appendChild(li);
+      });
+    });
+  }
+
+  window.deleteSchedule = function(index) {
+    if (!confirm('Xóa lịch trình này?')) return;
+    const schedulesRef = ref(db, 'agricontrol/schedules');
+    get(schedulesRef).then((snapshot) => {
+      const schedules = snapshot.val() || [];
+      schedules.splice(index, 1);
+      set(schedulesRef, schedules);
+    });
+  };
+
+  // ===== Crop Settings =====
+  window.saveSettings = function(areaId) {
+    const settings = {
+      cropName: document.getElementById(`crop-name-${areaId}`).value,
+      stage: document.getElementById(`stage-${areaId}`).value,
+      tempMin: Number(document.getElementById(`temp-min-${areaId}`).value),
+      tempMax: Number(document.getElementById(`temp-max-${areaId}`).value),
+      soilMin: Number(document.getElementById(`soil-min-${areaId}`).value),
+      soilMax: Number(document.getElementById(`soil-max-${areaId}`).value),
+      updatedAt: Date.now()
+    };
+
+    const settingsRef = ref(db, `agricontrol/crops/khu${areaId}`);
+    set(settingsRef, settings).then(() => {
+      alert(`Đã lưu cài đặt cho Khu ${areaId}!`);
+    });
+  };
+
+  function loadCropSettings() {
+    ['A', 'B', 'C'].forEach(areaId => {
+      const settingsRef = ref(db, `agricontrol/crops/khu${areaId}`);
+      onValue(settingsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        document.getElementById(`crop-name-${areaId}`).value = data.cropName || '';
+        document.getElementById(`stage-${areaId}`).value = data.stage || '';
+        document.getElementById(`temp-min-${areaId}`).value = data.tempMin || '';
+        document.getElementById(`temp-max-${areaId}`).value = data.tempMax || '';
+        document.getElementById(`soil-min-${areaId}`).value = data.soilMin || '';
+        document.getElementById(`soil-max-${areaId}`).value = data.soilMax || '';
+      });
+    });
+  }
+
+  // ===== Notifications =====
+  let activeNotifications = [];
+
+  function checkThresholds() {
+    const newNotifications = [];
+    
+    ['khuA', 'khuB', 'khuC'].forEach(area => {
+      const areaName = area.replace('khu', '');
+      
+      // Get current climate data
+      const climateRef = ref(db, `agricontrol/climate/${area}`);
+      get(climateRef).then(climateSnap => {
+        const climate = climateSnap.val();
+        if (!climate) return;
+
+        // Get crop settings
+        const settingsRef = ref(db, `agricontrol/crops/${area}`);
+        get(settingsRef).then(settingsSnap => {
+          const settings = settingsSnap.val();
+          if (!settings) return;
+
+          // Check temperature
+          if (climate.temperature < settings.tempMin) {
+            newNotifications.push({
+              id: `${area}-temp-low-${Date.now()}`,
+              area,
+              message: `⚠️ Khu ${areaName}: Nhiệt độ quá thấp (${climate.temperature.toFixed(1)}°C)`
+            });
+          } else if (climate.temperature > settings.tempMax) {
+            newNotifications.push({
+              id: `${area}-temp-high-${Date.now()}`,
+              area,
+              message: `⚠️ Khu ${areaName}: Nhiệt độ quá cao (${climate.temperature.toFixed(1)}°C)`
+            });
+          }
+
+          // Check soil humidity
+          if (climate.soilHumidity < settings.soilMin) {
+            newNotifications.push({
+              id: `${area}-soil-low-${Date.now()}`,
+              area,
+              message: `⚠️ Khu ${areaName}: Độ ẩm đất quá thấp (${climate.soilHumidity.toFixed(1)}%)`
+            });
+          } else if (climate.soilHumidity > settings.soilMax) {
+            newNotifications.push({
+              id: `${area}-soil-high-${Date.now()}`,
+              area,
+              message: `⚠️ Khu ${areaName}: Độ ẩm đất quá cao (${climate.soilHumidity.toFixed(1)}%)`
+            });
+          }
+
+          // Merge with existing notifications (avoid duplicates)
+          newNotifications.forEach(newNotif => {
+            const exists = activeNotifications.find(n => 
+              n.area === newNotif.area && n.message.includes(newNotif.message.split(':')[1])
+            );
+            if (!exists) {
+              activeNotifications.push(newNotif);
+            }
+          });
+
+          updateNotificationDisplay();
+        });
+      });
+    });
+  }
+
+  function updateNotificationDisplay() {
+    const listEl = document.getElementById('notification-list');
+    const badge = document.getElementById('notification-badge');
+    const clearAllBtn = document.getElementById('clear-all-notifications');
+
+    if (activeNotifications.length === 0) {
+      listEl.innerHTML = '<div class="notification-item text-muted">Không có thông báo</div>';
+      badge.style.display = 'none';
+      if (clearAllBtn) clearAllBtn.style.display = 'none';
+      return;
+    }
+
+    listEl.innerHTML = activeNotifications.map(notif => `
+      <div class="notification-item active-alert" data-id="${notif.id}">
+        <div class="d-flex justify-content-between align-items-start">
+          <span>${notif.message}</span>
+          <button class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="window.removeNotification('${notif.id}')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    badge.textContent = activeNotifications.length;
+    badge.style.display = 'block';
+    if (clearAllBtn) clearAllBtn.style.display = 'inline-block';
+  }
+
+  window.removeNotification = function(id) {
+    activeNotifications = activeNotifications.filter(n => n.id !== id);
+    updateNotificationDisplay();
+  };
+
+  window.clearAllNotifications = function() {
+    activeNotifications = [];
+    updateNotificationDisplay();
+  };
+
+  // Check thresholds every 30 seconds
+  setInterval(checkThresholds, 30000);
+
+  // ===== Weather Forecast =====
+  let weatherChartInstance = null;
+
+  async function fetchWeather() {
+    const loading = document.getElementById('weather-loading');
+    const content = document.getElementById('weather-content');
+    
+    if(loading) loading.style.display = 'block';
+    if(content) content.style.display = 'none';
+
+    try {
+      // API Open-Meteo
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=10.823&longitude=106.6296&hourly=temperature_2m&timezone=auto');
+      const data = await res.json();
+
+      if (!data || !data.hourly) throw new Error('Dữ liệu không hợp lệ');
+
+      const labels = data.hourly.time.map(t => {
+        const d = new Date(t);
+        return `${d.getDate()}/${d.getMonth()+1} ${d.getHours()}h`;
+      });
+      const temps = data.hourly.temperature_2m;
+
+      if(loading) loading.style.display = 'none';
+      if(content) content.style.display = 'block';
+
+      const ctx = document.getElementById('weatherChart');
+      if (!ctx) return;
+
+      if (weatherChartInstance) {
+        weatherChartInstance.destroy();
+      }
+
+      weatherChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Nhiệt độ (°C)',
+            data: temps,
+            borderColor: '#fd7e14',
+            backgroundColor: 'rgba(253, 126, 20, 0.1)',
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: true, position: 'top' } },
+          scales: { x: { ticks: { maxTicksLimit: 12 } } }
+        }
+      });
+    } catch (e) {
+      console.error('Weather error:', e);
+      if(loading) loading.innerHTML = `<div class="text-danger">Lỗi: ${e.message}</div>`;
+    }
+  }
+
+  const refreshBtn = document.getElementById('refresh-weather');
+  if(refreshBtn) refreshBtn.addEventListener('click', fetchWeather);
+
+  // ===== Initialize =====
+  document.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    updateClimateDisplay(currentArea.value);
+    
+    // Sync all irrigation controls
+    document.querySelectorAll('[data-area][data-control]').forEach(syncIrrigationControl);
+    
+    // Load schedules
+    loadSchedules();
+    
+    // Load crop settings
+    loadCropSettings();
+    
+    // Initial threshold check
+    setTimeout(checkThresholds, 2000);
+
+    // Fetch weather
+    fetchWeather();
+
+    console.log('[AgriControl] Initialized with Firebase sync');
+  });
+
+// ===== Notification Bell Toggle (FINAL FIX) =====
+const bell = document.getElementById('notification-bell');
+const panel = document.getElementById('notification-panel');
+const clearAllBtn = document.getElementById('clear-all-notifications');
+
+bell.addEventListener('click', (e) => {
+  e.stopPropagation();
+  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+});
+
+panel.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+if (clearAllBtn) {
+  clearAllBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.clearAllNotifications();
+  });
+}
+
+document.addEventListener('click', () => {
+  panel.style.display = 'none';
+});
+
+</script>
+
+<script>
+/* AgriControlSidebarToggle: UI-only, does not touch Firebase/logic */
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebar = document.getElementById('sidebar-wrapper');
+  const toggle = document.getElementById('sidebar-toggle');
+  if (!sidebar || !toggle) return;
+
+  const apply = (collapsed) => {
+    sidebar.classList.toggle('collapsed', collapsed);
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    try { localStorage.setItem('ag_sidebar_collapsed', collapsed ? '1' : '0'); } catch(e) {}
+  };
+
+  // restore
+  try { apply(localStorage.getItem('ag_sidebar_collapsed') === '1'); } catch(e) {}
+
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    apply(!sidebar.classList.contains('collapsed'));
+  });
+});
+</script>
+
+</body>
+</html>

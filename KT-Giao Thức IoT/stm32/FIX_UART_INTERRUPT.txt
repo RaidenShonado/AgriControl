@@ -1,0 +1,67 @@
+=====================================================
+VẤN ĐỀ: STM32 KHÔNG NHẬN ĐƯỢC LỆNH TỪ ESP32
+=====================================================
+
+NGUYÊN NHÂN:
+------------
+UART interrupt (USART1_IRQn) CHƯA ĐƯỢC ENABLE trong NVIC!
+
+Mặc dù code đã có:
+- HAL_UART_RxCpltCallback() - callback xử lý dữ liệu nhận
+- start_uart_rx_interrupt() - khởi động nhận interrupt
+- USART1_IRQHandler() trong stm32f1xx_it.c
+
+Nhưng THIẾU: HAL_NVIC_EnableIRQ(USART1_IRQn) trong HAL_UART_MspInit()
+
+GIẢI PHÁP:
+----------
+Mở file: c:\Users\PC\Desktop\Do_an_2\Core\Src\stm32f1xx_hal_msp.c
+
+Tìm dòng 318-320:
+    /* USER CODE BEGIN USART1_MspInit 1 */
+
+    /* USER CODE END USART1_MspInit 1 */
+
+THAY BẰNG:
+    /* USER CODE BEGIN USART1_MspInit 1 */
+    /* UART interrupt init - CRITICAL for receiving commands from ESP32 */
+    HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
+    /* USER CODE END USART1_MspInit 1 */
+
+SAU KHI SỬA:
+------------
+1. Build lại project:
+   cd c:\Users\PC\Desktop\Do_an_2
+   cmake --build build/Debug
+
+2. Flash vào STM32 (dùng ST-Link hoặc programmer của bạn)
+
+3. Test:
+   - Mở Serial Monitor USB CDC của STM32
+   - Bật/tắt PUMP, LED, SERVO từ Web interface
+   - Bạn sẽ thấy:
+     [RX Byte: P (0x50)]
+     [RX Byte: U (0x55)]
+     ...
+     [UART RX] PUMP:1,LED:0,SERVO:0
+     [ACTION] PUMP=1
+     [ACTION] LED=0
+     [ACTION] SERVO=0
+
+KẾT QUẢ MONG ĐỢI:
+-----------------
+✅ STM32 sẽ nhận được lệnh từ ESP32
+✅ Bơm, đèn, servo sẽ hoạt động theo lệnh từ Web/Firebase
+✅ ESP32 log sẽ thấy: [->STM32] PUMP:1,LED:0,SERVO:0
+✅ STM32 USB CDC log sẽ thấy: [UART RX] PUMP:1,LED:0,SERVO:0 và [ACTION] PUMP=1
+
+LƯU Ý:
+-------
+- Đảm bảo kết nối UART đúng:
+  ESP32 TX (GPIO17) → STM32 RX (PA10)
+  ESP32 RX (GPIO16) → STM32 TX (PA9)
+  GND chung
+
+- Nếu sử dụng STM32CubeMX, thêm code này vào USER CODE section
+  để không bị ghi đè khi regenerate code

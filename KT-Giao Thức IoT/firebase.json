@@ -1,0 +1,159 @@
+{
+  "agricontrol": {
+    "alerts": {
+      "history": {
+        "-OigvS1EAmFT-Uc6idbF": {
+          "area": "khuA",
+          "createdAt": 1768132825230,
+          "message": "Nhiệt độ thấp hơn ngưỡng",
+          "threshold": 36,
+          "type": "temperature",
+          "value": 30.7
+        },
+        "-OigvS2SiaxKrrfWr7PS": {
+          "area": "khuA",
+          "createdAt": 1768132825230,
+          "message": "Độ ẩm đất thấp hơn ngưỡng",
+          "threshold": 10,
+          "type": "soil",
+          "value": 0
+        },
+        "-OigvS5xWrE4eedhG62B": {
+          "area": "khuB",
+          "createdAt": 1768132825533,
+          "message": "Độ ẩm đất thấp hơn ngưỡng",
+          "threshold": 30,
+          "type": "soil",
+          "value": 0
+        },
+        "-OigvS9V0Cbn74HKD-pc": {
+          "area": "khuC",
+          "createdAt": 1768132825760,
+          "message": "Độ ẩm đất thấp hơn ngưỡng",
+          "threshold": 30,
+          "type": "soil",
+          "value": 0
+        }
+      }
+    },
+    "climate": {
+      "khuA": {
+        " airHumidity": 50,
+        "airHumidity": 0,
+        "history": {
+          "lightIntensity": 7000,
+          "soilHumidity": 40,
+          "temperature": 32
+        },
+        "latest": {
+          "airHumidity": 0,
+          "light": 0,
+          "lightIntensity": 0,
+          "soilHumidity": 0,
+          "temperature": 0,
+          "timestamp": 38883,
+          "curtain": 0,
+          "water": 0
+        },
+        "lightIntensity": 0,
+        "soilHumidity": 0,
+        "temperature": 0,
+        "curtain": 0
+      },
+      "khuB": {
+        "airHumidity": 68,
+        "lightIntensity": 9200,
+        "soilHumidity": 42.5,
+        "temperature": 27.2
+      },
+      "khuC": {
+        "airHumidity": 62,
+        "lightIntensity": 7800,
+        "soilHumidity": 48.3,
+        "temperature": 29.1
+      }
+    },
+    "crops": {
+      "khuA": {
+        "cropName": "rau mồng tới",
+        "soilMax": 12,
+        "soilMin": 10,
+        "stage": "Trưởng thành",
+        "tempMax": 40,
+        "tempMin": 36,
+        "updatedAt": 1768122580353
+      },
+      "khuB": {
+        "cropName": "",
+        "soilMax": 0,
+        "soilMin": 0,
+        "stage": "",
+        "tempMax": 0,
+        "tempMin": 0,
+        "updatedAt": 1768314604561
+      }
+    },
+    "irrigation": {
+      "khuA": {
+        "light": true,
+        "updatedAt": 1768432821300,
+        "curtain": true,
+        "water": true
+      },
+      "khuB": {
+        "light": false,
+        "updatedAt": 1768132387399,
+        "curtain": 0,
+        "water": false
+      },
+      "khuC": {
+        "light": false,
+        "updatedAt": 1768133550462,
+        "curtain": 0,
+        "water": false
+      }
+    },
+    "schedules": [
+      {
+        "area": "Khu A",
+        "createdAt": 1768122924302,
+        "endTime": "2026-02-11T13:31",
+        "lightState": false,
+        "repeat": "none",
+        "startTime": "2025-02-11T01:30",
+        "curtainState": false,
+        "waterState": false
+      },
+      {
+        "area": "Khu A",
+        "createdAt": 1768379717963,
+        "endTime": "2026-01-16T01:01",
+        "lightState": true,
+        "repeat": "none",
+        "startTime": "2026-01-15T01:01",
+        "curtainState": true,
+        "waterState": true
+      },
+      {
+        "area": "Khu A",
+        "createdAt": 1768379720139,
+        "endTime": "2026-01-16T01:01",
+        "lightState": true,
+        "repeat": "none",
+        "startTime": "2026-01-15T01:01",
+        "curtainState": true,
+        "waterState": true
+      },
+      {
+        "area": "Khu A",
+        "createdAt": 1768379732663,
+        "endTime": "2026-01-16T01:01",
+        "lightState": true,
+        "repeat": "daily",
+        "startTime": "2026-01-15T01:01",
+        "curtainState": true,
+        "waterState": true
+      }
+    ]
+  }
+}
